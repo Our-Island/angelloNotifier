@@ -1,5 +1,7 @@
 <div align="center">
 
+<img height="256" alt="angellonotifier-icon" src="https://raw.githubusercontent.com/Our-Island/angelloNotifier/refs/heads/master/angellonotifier-icon.png" />
+
 angelloNotifier
 ---
 
