@@ -1,3 +1,7 @@
+# ============================================================
+# angelloNotifier Data
+# https://github.com/Our-Island/angelloNotifier/wiki/data.yml
+# ============================================================
 next-notification-id: 1
 notifications: [ ]
 players: { }
