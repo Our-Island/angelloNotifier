@@ -19,7 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Plugin(
-        id = "angello-notifier",
+        id = "angellonotifier",
         name = "angelloNotifier",
         version = "0.1.0-SNAPSHOT",
         description = "A velocity announcement and notification sending and managing plugin.",
@@ -27,6 +27,8 @@ import java.nio.file.Path;
         authors = {"Our-Island", "Chiloven945"}
 )
 public class AngelloNotifier {
+
+    public static final String VERSION = "0.1.0-SNAPSHOT";
 
     ProxyServer server;
     Logger logger;
@@ -50,6 +52,20 @@ public class AngelloNotifier {
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
         try {
+            long t0 = System.currentTimeMillis();
+            logger.info(
+                    "Starting to initialize angelloNotifier {}...\n{}", VERSION,
+                    """
+                                                    _ _       _   _       _   _  __ _          \s
+                                                   | | |     | \\ | |     | | (_)/ _(_)         \s
+                              __ _ _ __   __ _  ___| | | ___ |  \\| | ___ | |_ _| |_ _  ___ _ __\s
+                             / _` | '_ \\ / _` |/ _ \\ | |/ _ \\| . ` |/ _ \\| __| |  _| |/ _ \\ '__|
+                            | (_| | | | | (_| |  __/ | | (_) | |\\  | (_) | |_| | | | |  __/ |  \s
+                             \\__,_|_| |_|\\__, |\\___|_|_|\\___/|_| \\_|\\___/ \\__|_|_| |_|\\___|_|  \s
+                                          __/ |                                                \s
+                                         |___/                                                 \s"""
+            );
+
             Files.createDirectories(dataDirectory);
 
             configManager = new ConfigManager(logger, dataDirectory.resolve("config.yml"));
@@ -71,7 +87,7 @@ public class AngelloNotifier {
             server.getEventManager().register(this, new PlayerConnectionListener(notificationService));
             registerCommands();
 
-            logger.info("angelloNotifier loaded. dataDir={}", dataDirectory.toAbsolutePath());
+            logger.info("angelloNotifier initialized after {}s.", (System.currentTimeMillis() - t0) / 1000.0);
         } catch (Exception ex) {
             logger.error("Failed to initialize angelloNotifier", ex);
         }

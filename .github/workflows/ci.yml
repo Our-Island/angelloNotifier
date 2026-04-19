@@ -103,7 +103,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          PATTERN_PLUGIN="angelloNotifier loaded"
+          PATTERN_PLUGIN="angelloNotifier initialized"
           PATTERN_BOOT="Done \([0-9.]+s\)!"
 
           for i in $(seq 1 120); do
