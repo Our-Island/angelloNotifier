@@ -17,25 +17,90 @@ A velocity announcement and notification sending and managing plugin.
 
 ## Introduction
 
-WIP
+angelloNotifier is a proxy-side notice board for Velocity. It lets you publish one network-wide notice on the proxy,
+store it in YAML, and let players reopen that same notice later from a shared history.
+
+The plugin is designed as a public notice board rather than a private mailbox. Notices are global, while each player
+only has their own read state. Join-time previews, ignored servers, MiniMessage support, and per-notice lifetime
+settings are all built around that model.
+
+## Installation
+
+Build the jar or download a release, place it in the Velocity `plugins/` directory, and start the proxy once. The plugin
+will create its working directory and write default resource files on first startup. After that, adjust
+`plugins/angelloNotifier/config.yml` to fit your network and either restart the proxy or run `/angello reload`.
+
+If you are updating an existing installation, it is still a good idea to keep a backup of both `config.yml` and
+`data.yml` before replacing the jar. The data format is simple and human-readable, but a backup makes rollback much
+easier if you are testing new behaviour.
+
+## Quick start
+
+The base command is `/angello`, with `/angellonotifier`, `/anno`, and `/noticeboard` available as aliases. For players,
+the usual workflow is very small. `/angello inbox` opens the paged notice list in chat, `/angello show <id>` reprints a
+specific notice, and `/angello unread` reports how many notices are still unread for that player.
+
+For administrators, the central command is:
+
+```text
+/angello send <title> || <body> [|| lifetime]
+```
+
+The title is the first segment. The body is the second segment. The optional third segment is the lifetime for that one
+notice only. If the lifetime is omitted, the plugin falls back to `settings.default-notification-lifetime` from
+`config.yml`.
+
+A simple example looks like this:
+
+```text
+/angello send <gold>Maintenance</gold> || <red>The network will restart in 10 minutes.</red>
+```
+
+A notice with a custom lifetime looks like this:
+
+```text
+/angello send <yellow>Reminder</yellow> || Please read the event rules before joining. || 3
+```
+
+If you want multiple body lines, either type actual new lines in the command input or use `\n` inside the body segment.
+The plugin stores the body as a list of lines and prints it back as a block, with the notice board prefix on its own
+first line for multi-line output.
+
+Administrative review commands are `/angello list [page]`, `/angello delete <id>`, and `/angello reload`. Notice IDs do
+not change after deletion. If notice `#12` is deleted, that ID remains gone, while later notices continue with higher
+IDs.
 
 ## Documentation
 
-WIP
+The GitHub Wiki contains the detailed reference pages for the current implementation. The wiki home page explains the
+overall model and intended behaviour. The configuration page documents every setting in `config.yml`. The data page
+describes the exact structure of `data.yml`, including player state. The command page explains syntax, aliases,
+permissions, and examples in more detail.
+
+You can start here:
+
+[Home](https://github.com/Our-Island/angelloNotifier/wiki)  
+[config.yml](https://github.com/Our-Island/angelloNotifier/wiki/config.yml)  
+[data.yml](https://github.com/Our-Island/angelloNotifier/wiki/data.yml)  
+[Commands](https://github.com/Our-Island/angelloNotifier/wiki/Commands)
 
 ## Feedback
 
-Please use GitHub Issues for bug reports and feature requests.  
-When reporting a bug, include your Velocity version, the angelloNotifier version, your configuration files, and
-the relevant console logs so the issue can be reproduced.
+Please use GitHub Issues for bug reports and feature requests. When reporting a bug, include your Velocity version, the
+angelloNotifier version, your configuration files, and the relevant console logs so the issue can be reproduced.
+
+If the problem involves command parsing or formatting, include the exact command you entered and the exact output you
+received. If the problem involves notice state, include the affected part of `data.yml` as well. That usually makes the
+difference between a report that can be investigated quickly and one that needs several rounds of follow-up questions.
 
 ## Contributing
 
-Contributions are welcome. Fork the repository, create a feature branch, and keep changes focused and easy to review.  
+Contributions are welcome. Fork the repository, create a feature branch, and keep changes focused and easy to review.
 When opening a Pull Request, explain what changed, why it changed, and how to test it.
 
-If your changes affect configuration structure or i18n, please update the README, the example configs, and language
-files when needed.
+If your changes affect configuration structure, command behaviour, notice persistence, or i18n, please update the
+README, the wiki pages, and the shipped resource files where appropriate. Documentation drift is easy to introduce in a
+plugin like this because command syntax and stored data shape are part of the public surface of the project.
 
 ## License
 
