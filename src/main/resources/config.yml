@@ -1,0 +1,18 @@
+# ============================================================
+# angelloNotifier Configuration
+# ============================================================
+lang: "zh_cn"
+
+settings:
+  inbox-page-size: 10
+  join-preview-batch-size: 1
+  default-notification-lifetime: 2
+  ignored-servers:
+    - auth
+    - limbo
+
+sound:
+  enabled: true
+  name: "minecraft:block.note_block.pling"
+  volume: 1.0
+  pitch: 1.2

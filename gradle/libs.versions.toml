@@ -5,6 +5,7 @@ run-task = "3.0.2"
 
 [libraries]
 velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity-api" }
+snakeyaml = { module = "org.yaml:snakeyaml", version = "2.4" }
 
 [plugins]
 run-velocity = { id = "xyz.jpenilla.run-velocity", version.ref = "run-task" }
