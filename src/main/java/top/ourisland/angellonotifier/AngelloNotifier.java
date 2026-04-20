@@ -18,17 +18,19 @@ import top.ourisland.angellonotifier.util.I18n;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static top.ourisland.angellonotifier.AngelloNotifier.VERSION;
+
 @Plugin(
         id = "angellonotifier",
         name = "angelloNotifier",
-        version = "0.1.0-SNAPSHOT",
+        version = VERSION,
         description = "A velocity announcement and notification sending and managing plugin.",
         url = "https://github.com/Our-Island/angelloNotifier",
         authors = {"Our-Island", "Chiloven945"}
 )
 public class AngelloNotifier {
 
-    public static final String VERSION = "0.1.0-SNAPSHOT";
+    public static final String VERSION = "0.1.1-SNAPSHOT";
 
     ProxyServer server;
     Logger logger;
