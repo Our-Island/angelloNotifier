@@ -9,15 +9,14 @@ import net.kyori.adventure.sound.Sound;
 import org.slf4j.Logger;
 import top.ourisland.angellonotifier.AngelloNotifier;
 import top.ourisland.angellonotifier.config.ConfigManager;
-import top.ourisland.angellonotifier.model.Notification;
-import top.ourisland.angellonotifier.model.PlayerMailbox;
-import top.ourisland.angellonotifier.model.PlayerNotificationState;
-import top.ourisland.angellonotifier.model.SessionState;
+import top.ourisland.angellonotifier.model.*;
 import top.ourisland.angellonotifier.storage.DataManager;
 import top.ourisland.angellonotifier.storage.DataStore;
 import top.ourisland.angellonotifier.util.I18n;
+import top.ourisland.angellonotifier.util.NotificationImportUtils;
 import top.ourisland.angellonotifier.util.TimeUtils;
 
+import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -72,17 +71,28 @@ public class NotificationService {
             List<String> bodyLines,
             Integer lifetime
     ) {
+        return createNotification(createdBy, title, bodyLines, lifetime, null);
+    }
+
+    public synchronized Notification createNotification(
+            String createdBy,
+            String title,
+            List<String> bodyLines,
+            Integer lifetime,
+            Long createdAtEpochMs
+    ) {
         DataStore store = dataManager.store();
         long id = store.nextNotificationId();
         store.nextNotificationId(id + 1L);
 
         int resolvedLifetime = resolveLifetime(lifetime);
+        long resolvedCreatedAt = createdAtEpochMs != null ? createdAtEpochMs : System.currentTimeMillis();
         var notification = new Notification(
                 id,
                 title,
                 List.copyOf(bodyLines),
                 createdBy,
-                System.currentTimeMillis(),
+                resolvedCreatedAt,
                 resolvedLifetime
         );
         store.notifications().add(notification);
@@ -96,6 +106,61 @@ public class NotificationService {
             return configuredValue;
         }
         return Math.max(1, configManager.config().defaultNotificationLifetime());
+    }
+
+    public void importNotificationFromUri(CommandSource source, String requesterName, String rawUri) {
+        URI uri = normalizeUri(rawUri);
+        source.sendRichMessage(I18n.lang("command.import.started", escapeMini(uri.toString())));
+
+        server.getScheduler().buildTask(plugin, () -> {
+            try {
+                ImportedNotification importedNotification = NotificationImportUtils.loadFromUri(uri);
+                String createdBy = importedNotification.createdBy();
+                if (createdBy == null || createdBy.isBlank()) {
+                    createdBy = requesterName;
+                }
+
+                Notification notification = createNotification(
+                        createdBy,
+                        importedNotification.title(),
+                        importedNotification.body(),
+                        importedNotification.lifetime(),
+                        importedNotification.createdAtEpochMs()
+                );
+                broadcastNotification(notification);
+                source.sendRichMessage(I18n.lang("command.import.success", notification.id(), escapeMini(uri.toString())));
+            } catch (Exception ex) {
+                logger.warn("Failed to import notification from URI {}", uri, ex);
+                String reason = ex.getMessage();
+                if (reason == null || reason.isBlank()) {
+                    reason = "Unknown error.";
+                }
+                source.sendRichMessage(I18n.lang("command.import.failed", escapeMini(reason)));
+            }
+        }).schedule();
+    }
+
+    URI normalizeUri(String rawUri) {
+        try {
+            URI uri = URI.create(rawUri);
+            if (uri.getScheme() != null && !uri.getScheme().isBlank()) {
+                return uri;
+            }
+        } catch (Exception _) {
+        }
+
+        try {
+            return java.nio.file.Path.of(rawUri).toUri();
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Invalid URI", ex);
+        }
+    }
+
+    static String escapeMini(String input) {
+        return input
+                .replace("\\", "\\\\")
+                .replace("<", "\\<")
+                .replace(">", "\\>");
     }
 
     public synchronized void broadcastNotification(Notification notification) {
@@ -189,13 +254,6 @@ public class NotificationService {
     synchronized PlayerMailbox mailboxFor(UUID playerId) {
         return dataManager.store().playerMailboxes()
                 .computeIfAbsent(playerId, ignored -> new PlayerMailbox());
-    }
-
-    static String escapeMini(String input) {
-        return input
-                .replace("\\", "\\\\")
-                .replace("<", "\\<")
-                .replace(">", "\\>");
     }
 
     public synchronized int unreadCount(UUID playerId) {

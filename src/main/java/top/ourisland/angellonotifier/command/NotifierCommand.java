@@ -38,6 +38,7 @@ public class NotifierCommand implements SimpleCommand {
             case "show", "view", "open" -> handleShow(source, args);
             case "unread" -> handleUnread(source);
             case "send", "create", "set" -> handleSend(source, args);
+            case "import", "send-uri", "import-uri", "uri" -> handleImport(source, args);
             case "list" -> handleList(source, args);
             case "delete", "del", "remove" -> handleDelete(source, args);
             case "reload" -> handleReload(source);
@@ -52,7 +53,7 @@ public class NotifierCommand implements SimpleCommand {
         if (args.length <= 1) {
             List<String> suggestions = new ArrayList<>(List.of("help", "inbox", "show", "unread"));
             if (invocation.source().hasPermission(ADMIN_PERMISSION)) {
-                suggestions.addAll(List.of("send", "list", "delete", "reload"));
+                suggestions.addAll(List.of("send", "import", "list", "delete", "reload"));
             }
             return filterByPrefix(suggestions, args.length == 0 ? "" : args[0]);
         }
@@ -161,6 +162,31 @@ public class NotifierCommand implements SimpleCommand {
         );
         notificationService.broadcastNotification(notification);
         source.sendRichMessage(I18n.lang("command.sent", notification.id()));
+    }
+
+
+    void handleImport(CommandSource source, String[] args) {
+        if (!source.hasPermission(ADMIN_PERMISSION)) {
+            source.sendRichMessage(I18n.lang("command.no-permission-import"));
+            return;
+        }
+        if (args.length < 2) {
+            source.sendRichMessage(I18n.lang("command.usage.import"));
+            return;
+        }
+
+        String rawUri = String.join(" ", Arrays.copyOfRange(args, 1, args.length)).trim();
+        if (rawUri.isEmpty()) {
+            source.sendRichMessage(I18n.lang("command.usage.import"));
+            return;
+        }
+
+        try {
+            String createdBy = source instanceof Player player ? player.getUsername() : "CONSOLE";
+            notificationService.importNotificationFromUri(source, createdBy, rawUri);
+        } catch (IllegalArgumentException ex) {
+            source.sendRichMessage(I18n.lang("command.import.invalid-uri"));
+        }
     }
 
     void handleList(CommandSource source, String[] args) {
